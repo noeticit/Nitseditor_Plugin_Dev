@@ -70,7 +70,7 @@ class CreateDatabaseCommand extends Command
             }
             else
             {
-                $dbPath = $this->directoryPath .'/'. $pluginName . '/Databases/Migrations' . $time->format('Y_m_d_His'). '_create_'. $migrationName . '_table.php';
+                $dbPath = $this->directoryPath .'/'. $pluginName . '/Databases/Migrations/' . $time->format('Y_m_d_His'). '_create_'. $migrationName . '_table.php';
                 File::put($dbPath, $this->makeDatabaseContent($migrationName , $tableName, $pluginName ));
             }
         }
@@ -78,7 +78,7 @@ class CreateDatabaseCommand extends Command
         {
             foreach($plugins as $plugin)
             {
-                $dbPath = $plugin . '/Databases/Migrations' . $time->format('Y_m_d_His'). '_create_'. $migrationName . '_table.php';
+                $dbPath = $plugin . '/Databases/Migrations/' . $time->format('Y_m_d_His'). '_create_'. $migrationName . '_table.php';
                 $pluginName = str_replace($this->directoryPath, '', $plugin);
                 File::put($dbPath, $this->makeDatabaseContent($migrationName , $tableName, $pluginName));
             }
