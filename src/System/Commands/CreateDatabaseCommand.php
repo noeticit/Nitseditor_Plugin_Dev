@@ -70,7 +70,7 @@ class CreateDatabaseCommand extends Command
             }
             else
             {
-                $dbPath = $this->directoryPath .'/'. $pluginName . '/Databases/' . $time->format('Y_m_d_His'). '_create_'. $migrationName . '_table.php';
+                $dbPath = $this->directoryPath .'/'. $pluginName . '/Databases/Migrations' . $time->format('Y_m_d_His'). '_create_'. $migrationName . '_table.php';
                 File::put($dbPath, $this->makeDatabaseContent($migrationName , $tableName, $pluginName ));
             }
         }
@@ -111,9 +111,9 @@ class Create'. ucfirst($migrationName) .'Table extends Migration
     public static function up()
     {
         Schema::create(\''. $tableNameArr[1] .'\', function (Blueprint $table) {
-         $table->increments("id");
+            $table->increments("id");
 
-          $table->timestamps();
+            $table->timestamps();
         });
     }
     

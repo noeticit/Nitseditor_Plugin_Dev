@@ -83,7 +83,9 @@ class CreatePluginCommand extends Command
         File::makeDirectory($this->directoryPath . $pluginName .'/Views');
         File::makeDirectory($this->directoryPath . $pluginName .'/Models');
         File::makeDirectory($this->directoryPath . $pluginName .'/Databases');
-        File::makeDirectory($this->directoryPath . $pluginName .'/Databases/seeds');
+        File::makeDirectory($this->directoryPath . $pluginName .'/Databases/Migrations');
+        File::makeDirectory($this->directoryPath . $pluginName .'/Databases/Factories');
+        File::makeDirectory($this->directoryPath . $pluginName .'/Databases/Seeds');
         File::makeDirectory($this->directoryPath . $pluginName .'/Events');
         File::makeDirectory($this->directoryPath . $pluginName .'/Exceptions');
         File::makeDirectory($this->directoryPath . $pluginName .'/Listeners');
