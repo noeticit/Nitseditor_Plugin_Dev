@@ -67,7 +67,7 @@ class NitsEditorServiceProvider extends ServiceProvider
 
             $this->loadViewsFrom(base_path().'/plugins/'. $packageName .'/Views', $packageName);
 
-            $this->loadMigrationsFrom(base_path().'/plugins/'. $packageName .'/Databases');
+            $this->loadMigrationsFrom(base_path().'/plugins/'. $packageName .'/Databases/Migrations');
 
             $this->app->singleton(Factory::class, function () use($packageName){
                 $faker = $this->app->make(Faker::class);
@@ -126,7 +126,7 @@ class NitsEditorServiceProvider extends ServiceProvider
 
     protected function registerMigrations()
     {
-        $migrationsPath = __DIR__.'/../Database/Migrations';
+        $migrationsPath = __DIR__.'/../Database';
         $this->loadMigrationsFrom($migrationsPath);
     }
 }

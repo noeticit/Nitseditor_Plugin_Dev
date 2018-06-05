@@ -78,7 +78,7 @@ class CreateDatabaseCommand extends Command
         {
             foreach($plugins as $plugin)
             {
-                $dbPath = $plugin . '/Databases/' . $time->format('Y_m_d_His'). '_create_'. $migrationName . '_table.php';
+                $dbPath = $plugin . '/Databases/Migrations' . $time->format('Y_m_d_His'). '_create_'. $migrationName . '_table.php';
                 $pluginName = str_replace($this->directoryPath, '', $plugin);
                 File::put($dbPath, $this->makeDatabaseContent($migrationName , $tableName, $pluginName));
             }
