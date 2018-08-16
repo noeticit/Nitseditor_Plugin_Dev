@@ -28,7 +28,7 @@ class NitsEditorServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
 
-        $this->app->register('Nitseditor\System\Providers\NitsRoutesServiceProvider');
+//        $this->app->register('Nitseditor\System\Providers\NitsRoutesServiceProvider');
 
         $this->publishes([
             __DIR__.'/../nitseditor.php' => config_path('nitseditor.php'),
