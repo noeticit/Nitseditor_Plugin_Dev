@@ -36,7 +36,7 @@ class PluginRouteServiceProvider extends RouteServiceProvider
     {
         $this->mapApiRoutes();
 
-        $this->mapWebRoutes();
+//        $this->mapWebRoutes();
     }
 
 
