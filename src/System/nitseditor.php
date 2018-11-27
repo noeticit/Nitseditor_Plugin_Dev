@@ -9,6 +9,8 @@ return [
     * Application configurations
     */
 
+    'old_config' => false,
+
     // Generates the salt key for encryption.
 
     'salt_key' => '',

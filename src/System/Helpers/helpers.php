@@ -196,4 +196,21 @@ if(! function_exists('delete_models')) {
 
 
     }
+
+    //Env configuration involved during installations
+    if ( ! function_exists('config_env_keys'))
+    {
+        function config_env_keys($key, $value)
+        {
+            $path = app()->environmentFilePath();
+
+            $escaped = preg_quote('='.env($key), '/');
+
+            file_put_contents($path, preg_replace(
+                "/^{$key}{$escaped}/m",
+                "{$key}={$value}",
+                file_get_contents($path)
+            ));
+        }
+    }
 }

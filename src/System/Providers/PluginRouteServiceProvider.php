@@ -5,6 +5,7 @@ namespace Nitseditor\System\Providers;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Route;
 
 class PluginRouteServiceProvider extends RouteServiceProvider
@@ -36,7 +37,8 @@ class PluginRouteServiceProvider extends RouteServiceProvider
     {
         $this->mapApiRoutes();
 
-//        $this->mapWebRoutes();
+        if(config('nitseditor.old_config'))
+            $this->mapWebRoutes();
     }
 
 
