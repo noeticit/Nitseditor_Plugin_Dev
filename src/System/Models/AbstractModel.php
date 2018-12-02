@@ -4,10 +4,12 @@ namespace Nitseditor\System\Models;
 
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Crypt;
 
 class AbstractModel extends Model
 {
+    use SoftDeletes;
     /**
      *  Defining connection for database
      *
@@ -21,6 +23,8 @@ class AbstractModel extends Model
      * @var array
      **/
     protected $nits_encryption = [];
+
+    protected $guarded = ['id'];
 
     protected static function boot()
     {

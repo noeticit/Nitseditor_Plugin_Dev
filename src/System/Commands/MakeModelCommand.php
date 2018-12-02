@@ -13,7 +13,7 @@ class MakeModelCommand extends Command
      *
      * @var string
      */
-    protected $name = 'nitsPlugin:makeModel';
+    protected $name = 'nits:model';
 
     /**
      * The console command description.
@@ -27,21 +27,7 @@ class MakeModelCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'nitsPlugin:makeModel {modelName}';
-
-    /**
-     * Create a new command instance.
-     *
-     */
-
-    private $basePath;
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->basePath = base_path();
-        $this->directoryPath = $this->basePath. '/plugins/';
-    }
+    protected $signature = 'nits:model {modelName}';
 
     /**
      * Execute the console command.
@@ -51,49 +37,57 @@ class MakeModelCommand extends Command
     public function handle()
     {
         $modelName = $this->argument('modelName');
-        $plugins = $this->getPlugins();
-        if(count($plugins) > 1)
+        if(count($this->getPlugins()) > 1)
         {
             $this->info('You have multiple plugins installed');
             $pluginName = $this->ask('Enter the plugin name');
-            $path = $this->directoryPath . $pluginName .'/nitseditor.php';
-            if(!File::exists($path))
-            {
-                $this->info('Plugin does not exists');
-            }
-            else
-            {
-                $modelPath = $this->directoryPath . $pluginName . '/Models/' . $modelName . '.php';
-                File::put($modelPath, $this->makeModelContent($modelName, $pluginName));
-            }
+            $path = base_path('plugins') . $pluginName .'/nitseditor.php';
+            !File::exists($path) ? $this->info('Plugin does not exists') : $this->makeModelContent($modelName, $pluginName);
         }
         else
         {
-            foreach($plugins as $plugin)
+            foreach($this->getPlugins() as $plugin)
             {
-                $modelPath = $plugin . '/Models/' . $modelName . '.php';
-                $pluginName = str_replace($this->directoryPath, '', $plugin);
-                File::put($modelPath, $this->makeModelContent($modelName, $pluginName));
+                $pluginName = str_replace(base_path('plugins'), '', $plugin);
+                $this->makeModelContent($modelName, $pluginName);
             }
         }
 
     }
 
+    /**
+     * Get the stubs
+     * @param $type
+     * @return bool|string
+     */
+    protected function getStub($type)
+    {
+        return file_get_contents(base_path("vendor/noeticitservices/plugindev/src/System/Stubs/$type.stub"));
+    }
+
+    /**
+     * Get the plugins
+     * @return array
+     */
     public function getPlugins()
     {
-        $list = File::directories($this->directoryPath);
+        $list = File::directories(base_path('plugins'));
         return $list;
     }
 
-    public function makeModelContent($modelName, $pluginName)
+    /**
+     * @param $name
+     * @param $pluginName
+     */
+    protected function makeModelContent($name, $pluginName)
     {
-        return '<?php
-namespace Noetic\Plugins' . $pluginName . '\Models;
+        $modelTemplate = str_replace(
+            ['{{modelName}}', '{{pluginName}}'],
+            [ucfirst(strtolower($name)), $pluginName],
+            $this->getStub('Model')
+        );
 
-use Nitseditor\System\Models\AbstractModel;
-
-class '. $modelName .' extends AbstractModel {
-
-}';
+        file_put_contents(base_path("plugins/{$pluginName}/Models/{$name}.php"), $modelTemplate);
     }
+
 }

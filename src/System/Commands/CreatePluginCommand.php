@@ -14,7 +14,7 @@ class CreatePluginCommand extends Command
      *
      * @var string
      */
-    protected $name = 'nitsPlugin:createPlugin';
+    protected $name = 'nits:plugin';
 
     /**
      * The console command description.

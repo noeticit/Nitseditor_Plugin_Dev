@@ -14,7 +14,7 @@ class CreateRequestCommand extends Command
      *
      * @var string
      */
-    protected $name = 'nitsPlugin:createRequest';
+    protected $name = 'nits:request';
 
     /**
      * The console command description.
@@ -28,25 +28,7 @@ class CreateRequestCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'nitsPlugin:createRequest {requestName}';
-
-    /**
-     * Retrieving base path into variable
-     *
-     * @var string
-     */
-    private $basePath;
-
-    /**
-     * Create a new command instance.
-     *
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        $this->basePath = base_path();
-        $this->directoryPath = $this->basePath . '/plugins/';
-    }
+    protected $signature = 'nits:request {requestName}';
 
     /**
      * Execute the console command.
@@ -56,73 +38,57 @@ class CreateRequestCommand extends Command
     public function handle()
     {
         $requestName = $this->argument('requestName');
-        $plugins = $this->getPlugins();
-        if(count($plugins) > 1)
+        if(count($this->getPlugins()) > 1)
         {
             $this->info('You have multiple plugins installed');
             $pluginName = $this->ask('Enter the plugin name');
-            $path = $this->directoryPath . $pluginName .'/nitseditor.php';
-            if(!File::exists($path))
-            {
-                $this->info('Plugin does not exists');
-            }
-            else
-            {
-                $reqPath = $this->directoryPath .'/'. $pluginName . '/Requests/'.$requestName . '.php';
-                File::put($reqPath, $this->makeRequestContent($requestName, $pluginName ));
-            }
+            $path = base_path('plugins') . $pluginName .'/nitseditor.php';
+            !File::exists($path) ? $this->info('Plugin does not exists') : $this->makeRequestContent($requestName, $pluginName);
         }
         else
         {
-            foreach($plugins as $plugin)
+            foreach($this->getPlugins() as $plugin)
             {
-                $reqPath = $plugin .'/Requests/' . $requestName . '.php';
-                $pluginName = str_replace($this->directoryPath, '', $plugin);
-                File::put($reqPath, $this->makeRequestContent($requestName, $pluginName));
+                $pluginName = str_replace(base_path('plugins'), '', $plugin);
+                $this->makeRequestContent($requestName, $pluginName);
             }
         }
 
     }
 
+    /**
+     * Get the stubs
+     * @param $type
+     * @return bool|string
+     */
+    protected function getStub($type)
+    {
+        return file_get_contents(base_path("vendor/noeticitservices/plugindev/src/System/Stubs/$type.stub"));
+    }
+
+    /**
+     * Get the plugins
+     * @return array
+     */
     public function getPlugins()
     {
-        $list = File::directories($this->directoryPath);
+        $list = File::directories(base_path('plugins'));
         return $list;
     }
 
-    public function makeRequestContent($requestName, $pluginName)
-    {
-        return '<?php
-
-namespace Noetic\Plugins' . $pluginName . '\Requests;
-
-use Illuminate\Foundation\Http\FormRequest;
-
-class '. $requestName .' extends FormRequest
-{
     /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
+     * @param $name
+     * @param $pluginName
      */
-    public function authorize()
+    public function makeRequestContent($name, $pluginName)
     {
-        return false;
-    }
+        $requestName = ucfirst(strtolower($name)).'Request';
+        $requestTemplate = str_replace(
+            ['{{requestName}}', '{{pluginName}}'],
+            [$requestName, $pluginName],
+            $this->getStub('Request')
+        );
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
-    public function rules()
-    {
-        return [
-            //
-        ];
-    }
-}
-
-    ';
+        file_put_contents(base_path("plugins/{$pluginName}/Requests/{$requestName}.php"), $requestTemplate);
     }
 }

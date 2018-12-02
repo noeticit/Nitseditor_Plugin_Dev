@@ -14,7 +14,7 @@ class CreateDatabaseCommand extends Command
      *
      * @var string
      */
-    protected $name = 'nitsPlugin:createTable';
+    protected $name = 'nits:table';
 
     /**
      * The console command description.
@@ -28,25 +28,7 @@ class CreateDatabaseCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'nitsPlugin:createTable {migrationName} {tableName} ';
-
-    /**
-     * Retrieving base path into variable
-     *
-     * @var string
-     */
-    private $basePath;
-
-    /**
-     * Create a new command instance.
-     *
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        $this->basePath = base_path();
-        $this->directoryPath = $this->basePath . '/plugins/';
-    }
+    protected $signature = 'nits:table {tableName} ';
 
     /**
      * Execute the console command.
@@ -55,78 +37,54 @@ class CreateDatabaseCommand extends Command
      */
     public function handle()
     {
-        $migrationName = $this->argument('migrationName');
-        $tableName = $this->argument('tableName');
-        $plugins = $this->getPlugins();
-        $time = Carbon::now();
-        if(count($plugins) > 1)
+        $migrationName = $this->argument('tableName');
+        if(count($this->getPlugins()) > 1)
         {
             $this->info('You have multiple plugins installed');
             $pluginName = $this->ask('Enter the plugin name');
-            $path = $this->directoryPath . $pluginName .'/nitseditor.php';
-            if(!File::exists($path))
-            {
-                $this->info('Plugin does not exists');
-            }
-            else
-            {
-                $dbPath = $this->directoryPath .'/'. $pluginName . '/Databases/Migrations/' . $time->format('Y_m_d_His'). '_create_'. $migrationName . '_table.php';
-                File::put($dbPath, $this->makeDatabaseContent($migrationName , $tableName, $pluginName ));
-            }
+            $path = base_path('plugins') . $pluginName .'/nitseditor.php';
+            !File::exists($path) ? $this->info('Plugin does not exists') : $this->makeDatabaseContent($migrationName, $pluginName);
         }
         else
         {
-            foreach($plugins as $plugin)
+            foreach($this->getPlugins() as $plugin)
             {
-                $dbPath = $plugin . '/Databases/Migrations/' . $time->format('Y_m_d_His'). '_create_'. $migrationName . '_table.php';
-                $pluginName = str_replace($this->directoryPath, '', $plugin);
-                File::put($dbPath, $this->makeDatabaseContent($migrationName , $tableName, $pluginName));
+                $pluginName = str_replace(base_path('plugins'), '', $plugin);
+                $this->makeDatabaseContent($migrationName , $pluginName);
             }
         }
 
     }
 
+    /**
+     * Get the stubs
+     * @param $type
+     * @return bool|string
+     */
+    protected function getStub($type)
+    {
+        return file_get_contents(base_path("vendor/noeticitservices/plugindev/src/System/Stubs/$type.stub"));
+    }
+
+    /**
+     * @return array
+     */
     public function getPlugins()
     {
-        $list = File::directories($this->directoryPath);
+        $list = File::directories(base_path('plugins'));
         return $list;
     }
 
-    public function makeDatabaseContent($migrationName , $tableName, $pluginName)
+    public function makeDatabaseContent($migrationName, $pluginName)
     {
-        $tableNameArr = explode('=',$tableName);
-        return '<?php
+        $migrationClass = ucfirst(str_plural(strtolower($migrationName)));
+        $fileName = Carbon::now()->format('Y_m_d_His'). '_create_'. str_plural(strtolower($migrationName)). '_table';
+        $databaseTemplate = str_replace(
+            ['{{MigrationClass}}', '{{tableName}}'],
+            [$migrationClass, str_plural(strtolower($migrationName))],
+            $this->getStub('Database')
+        );
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Migrations\Migration;
-
-class Create'. ucfirst($migrationName) .'Table extends Migration
-{
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
-    public static function up()
-    {
-        Schema::create(\''. $tableNameArr[1] .'\', function (Blueprint $table) {
-            $table->increments("id");
-
-            $table->timestamps();
-        });
-    }
-    
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public static function down()
-    {
-        Schema::dropIfExists(\''. $tableNameArr[1] .'\');
-    }
-}
-    ';
+        file_put_contents(base_path("plugins/{$pluginName}/Databases/Migrations/{$fileName}.php"), $databaseTemplate);
     }
 }

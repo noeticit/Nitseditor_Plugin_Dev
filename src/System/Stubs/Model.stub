@@ -1,0 +1,9 @@
+<?php
+namespace Noetic\Plugins{{pluginName}}\Models;
+
+use Nitseditor\System\Models\AbstractModel;
+
+class {{modelName}} extends AbstractModel {
+
+
+}
