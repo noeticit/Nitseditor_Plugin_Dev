@@ -29,6 +29,14 @@
         }
     },
     "extra": {
+        "laravel": {
+            "providers": [
+                "Nitseditor\\System\\Providers\\NitsEditorServiceProvider"
+            ],
+            "aliases": {
+
+            }
+        },
         "merge-plugin": {
             "include": [
                 "composer.local.json",
@@ -45,5 +53,10 @@
             "merge-extra-deep": false,
             "merge-scripts": false
         }
-    }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
