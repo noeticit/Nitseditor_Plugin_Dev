@@ -30,11 +30,6 @@
             "providers": [
                 "Nitseditor\\System\\Providers\\NitsEditorServiceProvider"
             ]
-        },
-        "merge-plugin": {
-            "require": [
-                "plugins/*/composer.json"
-            ]
         }
     },
     "config": {
