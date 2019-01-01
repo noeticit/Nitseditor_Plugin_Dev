@@ -21,8 +21,8 @@ class NitsEditorServiceProvider extends ServiceProvider
     /**
      *   Bootstrapping the application services
      *
-     *  @return void
-     *
+     * @param \Nitseditor\System\Providers\ProviderRepository $providers
+     * @return void
      */
     public function boot(ProviderRepository $providers)
     {
@@ -114,6 +114,7 @@ class NitsEditorServiceProvider extends ServiceProvider
     /**
      * Create access token provider when access token is created.
      *
+     * @param \Nitseditor\System\Providers\ProviderRepository $providers
      * @return void
      */
     protected function createAccessTokenProvider(ProviderRepository $providers)

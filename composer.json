@@ -41,17 +41,7 @@
             "include": [
                 "composer.local.json",
                 "plugins/*/composer.json"
-            ],
-            "require": [
-                "submodule/composer.json"
-            ],
-            "recurse": true,
-            "replace": false,
-            "ignore-duplicates": false,
-            "merge-dev": true,
-            "merge-extra": false,
-            "merge-extra-deep": false,
-            "merge-scripts": false
+            ]
         }
     },
     "config": {

@@ -14,6 +14,10 @@ class PluginRouteServiceProvider extends RouteServiceProvider
 
     protected $namespace;
 
+    protected $coreNamespace = 'App\Http\Controllers';
+
+    protected $nitsditorNamespace='Nitseditor\System\Controllers';
+
     protected $app;
 
     private $path;
@@ -37,13 +41,25 @@ class PluginRouteServiceProvider extends RouteServiceProvider
     {
         $this->mapApiRoutes();
 
-        if(config('nitseditor.old_config'))
-            $this->mapWebRoutes();
+        $this->mapWebRoutes();
     }
 
 
     protected function mapApiRoutes()
     {
+        //Core routes loader
+        Route::prefix('api')
+            ->middleware('api')
+            ->namespace($this->coreNamespace)
+            ->group(base_path('routes/api.php'));
+
+        //Nitseditor route loader
+        Route::prefix('api')
+            ->middleware('api')
+            ->namespace($this->nitsditorNamespace)
+            ->group(__DIR__ . '/../Routes/api.php');
+
+        //Plugin route loader
         foreach ($this->packages as $package){
 
             $packageName = Arr::get($package, 'name');
@@ -59,14 +75,32 @@ class PluginRouteServiceProvider extends RouteServiceProvider
 
     protected function mapWebRoutes()
     {
-        foreach ($this->packages as $package) {
+        //Core routes loader
+        Route::middleware('web')
+            ->namespace($this->coreNamespace)
+            ->group(base_path('routes/web.php'));
 
-            $packageName = Arr::get($package, 'name');
-            $namespace = 'Noetic\Plugins\\' . $packageName . '\Controllers';
-
+        //Nitseditor route loader
+        $config = config('nitseditor');
+        $packages = Arr::get($config, 'packages', []);
+        if(!$packages) {
             Route::middleware('web')
-                ->namespace($namespace)
-                ->group($this->path . $this->directoryPath . $packageName . '/Routes/web.php');
+                ->namespace($this->nitsditorNamespace)
+                ->group(__DIR__ . '/../Routes/web.php');
+        }
+
+        //Plugin route loader
+        if(config('nitseditor.old_config'))
+        {
+            foreach ($this->packages as $package) {
+
+                $packageName = Arr::get($package, 'name');
+                $namespace = 'Noetic\Plugins\\' . $packageName . '\Controllers';
+
+                Route::middleware('web')
+                    ->namespace($namespace)
+                    ->group($this->path . $this->directoryPath . $packageName . '/Routes/web.php');
+            }
         }
     }
 }

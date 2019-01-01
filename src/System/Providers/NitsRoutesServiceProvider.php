@@ -11,6 +11,8 @@ class NitsRoutesServiceProvider extends RouteServiceProvider
 {
     protected $namespace='Nitseditor\System\Controllers';
 
+    protected $coreNamespace = 'App\Http\Controllers';
+
     public function boot()
     {
         parent::boot();
@@ -26,6 +28,13 @@ class NitsRoutesServiceProvider extends RouteServiceProvider
 
     protected function mapApiRoutes()
     {
+        //Core routes loader
+        Route::prefix('api')
+            ->middleware('api')
+            ->namespace($this->coreNamespace)
+            ->group(base_path('routes/api.php'));
+
+        //Nitseditor route loader
         Route::prefix('api')
             ->middleware('api')
             ->namespace($this->namespace)
@@ -34,6 +43,12 @@ class NitsRoutesServiceProvider extends RouteServiceProvider
 
     protected function mapWebRoutes()
     {
+        //Core routes loader
+        Route::middleware('web')
+            ->namespace($this->coreNamespace)
+            ->group(base_path('routes/web.php'));
+
+        //Nitseditor route loader
         $config = config('nitseditor');
         $packages = Arr::get($config, 'packages', []);
         if(!$packages)
