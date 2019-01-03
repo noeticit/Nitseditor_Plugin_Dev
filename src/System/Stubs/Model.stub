@@ -1,9 +1,13 @@
 <?php
-namespace Noetic\Plugins{{pluginName}}\Models;
+namespace Noetic\Plugins\{{pluginName}}\Models;
 
 use Nitseditor\System\Models\AbstractModel;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class {{modelName}} extends AbstractModel {
 
+    use SoftDeletes;
+
+    protected $guarded= [];
 
 }

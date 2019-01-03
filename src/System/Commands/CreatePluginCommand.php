@@ -24,19 +24,11 @@ class CreatePluginCommand extends Command
     protected $description = 'Command for creation of Nitseditor Plugin.';
 
     /**
-     * Create a new command instance.
+     * The name and signature of the console command.
      *
+     * @var string
      */
-
-    private $basePath;
-
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->basePath = base_path();
-        $this->directoryPath = $this->basePath. '/plugins/';
-    }
+    protected $signature = 'nits:plugin {name}';
 
     /**
      * Execute the console command.
@@ -46,191 +38,181 @@ class CreatePluginCommand extends Command
     public function handle()
     {
         $this->info('Create plugins for NitsEditor');
-        $pluginName = $this->ask('Tell us your plugin name:');
+        if(!$this->argument('name'))
+            $pluginName = $this->ask('Tell us your plugin name:');
+        else
+            $pluginName = $this->argument('name');
 
-        $path = $this->directoryPath . $pluginName .'/nitseditor.php';
-        if(!File::exists($path))
+        if(!File::exists(base_path('/plugins/') . $pluginName))
         {
-            if(!File::isDirectory($this->directoryPath))
-            {
-                File::makeDirectory($this->directoryPath);
-            }
-            $folderStatus = $this->makeFolders($pluginName);
-            $fileStatus = $this->makeFiles($pluginName);
+            if(!File::isDirectory(base_path('plugins')))
+                File::makeDirectory(base_path('plugins'));
 
-            if($fileStatus == true && $folderStatus == true)
-            {
+            if($this->makeFiles($pluginName))
                 $this->info('Your plugin is created, and default files has also being created');
-            }
             else
-            {
                 $this->info('There is some error in making plugin, delete your plugin folder and try again');
-            }
 
         }
         else
-        {
-            $this->info('Error this plugin already exists');
-        }
-    }
-
-    public function makeFolders($pluginName)
-    {
-        File::makeDirectory($this->directoryPath . $pluginName);
-        File::makeDirectory($this->directoryPath . $pluginName .'/Controllers');
-        File::makeDirectory($this->directoryPath . $pluginName .'/Controllers/Middlewares');
-        File::makeDirectory($this->directoryPath . $pluginName .'/Routes');
-        File::makeDirectory($this->directoryPath . $pluginName .'/Views');
-        File::makeDirectory($this->directoryPath . $pluginName .'/Models');
-        File::makeDirectory($this->directoryPath . $pluginName .'/Databases');
-        File::makeDirectory($this->directoryPath . $pluginName .'/Databases/Migrations');
-        File::makeDirectory($this->directoryPath . $pluginName .'/Databases/Factories');
-        File::makeDirectory($this->directoryPath . $pluginName .'/Databases/Seeds');
-        File::makeDirectory($this->directoryPath . $pluginName .'/Events');
-        File::makeDirectory($this->directoryPath . $pluginName .'/Exceptions');
-        File::makeDirectory($this->directoryPath . $pluginName .'/Listeners');
-        File::makeDirectory($this->directoryPath . $pluginName .'/Providers');
-        return true;
+            $this->info('Error! this plugin already exists');
     }
 
     public function makeFiles($pluginName)
     {
-        File::put($this->directoryPath . $pluginName .'/Routes/web.php', $this->makeWebRoutesContent($pluginName));
-        File::put($this->directoryPath . $pluginName .'/Routes/api.php', $this->makeWebRoutesContent($pluginName));
-        File::put($this->directoryPath . $pluginName .'/Databases/seeds/InstallDatabase.php', $this->makeSeeders($pluginName));
-        File::put($this->directoryPath . $pluginName .'/Databases/seeds/UninstallDatabase.php', $this->makeSeeders($pluginName));
-        File::put($this->directoryPath . $pluginName .'/nitseditor.php', 'Hello');
-        File::put($this->directoryPath . $pluginName .'/Views/home.blade.php', $this->makeViewsContent($pluginName));
-        File::put($this->directoryPath . $pluginName .'/Controllers/HomeController.php', $this->makeControllerContents($pluginName));
+        File::makeDirectory(base_path('/plugins/') . $pluginName);
+        File::makeDirectory(base_path('/plugins/') . $pluginName .'/Models');
+        File::makeDirectory(base_path('/plugins/') . $pluginName .'/Events');
+        File::makeDirectory(base_path('/plugins/') . $pluginName .'/Exceptions');
+        File::makeDirectory(base_path('/plugins/') . $pluginName .'/Listeners');
+        File::makeDirectory(base_path('/plugins/') . $pluginName .'/Requests');
+
+        $this->makeSeeders('Install', $pluginName);
+        $this->makeSeeders('Uninstall', $pluginName);
+        $this->makeRoutesContent($pluginName);
+        $this->makeConfigContents($pluginName);
+        $this->makeControllerContents('Home', $pluginName);
+        $this->makeComposerContents($pluginName);
+        $this->makePackageContents($pluginName);
+        $this->frontEndConfigContents($pluginName);
+        $this->frontEndRoutesContents($pluginName);
+        $this->frontEndPageContents($pluginName);
+
         return true;
     }
 
-    public function makeWebRoutesContent($pluginName)
+    public function makeRoutesContent($pluginName)
     {
-        return '<?php
+        //Checking if folder exists or not
+        if(!File::exists(base_path('plugins/'.$pluginName.'/Routes')))
+            File::makeDirectory(base_path('plugins/'.$pluginName.'/Routes'));
 
-Route::get(\'/\', [\'as\' => \'' . $pluginName. '\', \'uses\' => \'HomeController@index\']);';
+        //Creating Routes.
+        $routeTemplate = str_replace(
+            ['{{pluginName}}'],
+            [$pluginName],
+            get_plugin_stub('Route')
+        );
+
+        file_put_contents(base_path("plugins/{$pluginName}/Routes/api.php"), $routeTemplate);
 
     }
 
-    public function makeViewsContent($pluginName)
+    public function makeControllerContents($name, $pluginName)
     {
-        return '<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <title>Nitseditor</title>
-
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
-
-    <!-- Styles -->
-    <style>
-        html, body {
-            background-color: #fff;
-            color: #636b6f;
-            font-family: \'Raleway\', sans-serif;
-            font-weight: 100;
-            height: 100vh;
-            margin: 0;
+        //Checking if folder exists or not
+        if(!File::exists(base_path('plugins/'.$pluginName.'/Controllers')))
+        {
+            File::makeDirectory(base_path('plugins/'.$pluginName.'/Controllers'));
+            File::makeDirectory(base_path('plugins/'.$pluginName.'/Controllers/Middlewares'));
         }
 
-        .full-height {
-            height: 100vh;
-        }
+        //Creating Controller.
+        $controllerName = ucfirst(strtolower($name)).'Controller';
+        $controllerTemplate = str_replace(
+            ['{{$controllerName}}', '{{pluginName}}'],
+            [$controllerName, $pluginName],
+            get_plugin_stub('Controller')
+        );
 
-        .flex-center {
-            align-items: center;
-            display: flex;
-            justify-content: center;
-        }
-
-        .position-ref {
-            position: relative;
-        }
-
-        .content {
-            text-align: center;
-        }
-
-        .title {
-            font-size: 84px;
-        }
-
-        .links > a {
-            color: #636b6f;
-            padding: 0 25px;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: .1rem;
-            text-decoration: none;
-            text-transform: uppercase;
-        }
-
-        .m-b-md {
-            margin-bottom: 30px;
-        }
-    </style>
-</head>
-<body>
-<div class="flex-center position-ref full-height">
-
-    <div class="content">
-        <div class="title m-b-md">
-            NitsEditor -'. $pluginName .'
-        </div>
-
-        <div class="links">
-            <a href="https://www.noeticitservices.com">Company Website</a>
-            <a href="https://packagist.org/packages/noeticitservices/plugindev">Packagist Readme Page</a>
-            <a href="https://github.com/noeticit/Nitseditor_Plugin_Dev">GitHub Page</a>
-        </div>
-    </div>
-</div>
-</body>
-</html>
-';
+        file_put_contents(base_path("plugins/{$pluginName}/Controllers/{$controllerName}.php"), $controllerTemplate);
     }
 
-    public function makeControllerContents($pluginName)
+    public function makeConfigContents($pluginName)
     {
-        return '<?php
+        //Creating Config file.
+        $name = ucfirst($pluginName);
+        $configTemplate = str_replace(
+            ['{{name}}', '{{namespace}}'],
+            [$pluginName, $name],
+            get_plugin_stub('config')
+        );
 
-namespace Noetic\Plugins\\' . $pluginName . '\Controllers;
-        
-              
-use App\Http\Controllers\Controller;
-        
-class HomeController extends Controller
-{
-    public function index()
-    {
-        return view(\'' . $pluginName . '::home\');
-    }
-}';
+        file_put_contents(base_path("plugins/{$pluginName}/config.php"), $configTemplate);
     }
 
-    public function makeSeeders($pluginName)
+    public function makeSeeders($name, $pluginName)
     {
-        return '<?php
-namespace Noetic\Plugins\blog\Databases\seeds;
+        //Checking if folder exists or not
+        if(!File::exists(base_path('plugins/'.$pluginName.'/Databases')))
+        {
+            File::makeDirectory(base_path('plugins/'.$pluginName.'/Databases'));
+            File::makeDirectory(base_path('plugins/'.$pluginName.'/Databases/Migrations'));
+            File::makeDirectory(base_path('plugins/'.$pluginName.'/Databases/Seeds'));
+            File::makeDirectory(base_path('plugins/'.$pluginName.'/Databases/Factories'));
+        }
 
-use Illuminate\Database\Seeder;
+        //Creating Controller.
+        $seederName = ucfirst(strtolower($name)).'Seeder';
+        $seederTemplate = str_replace(
+            ['{{seederName}}', '{{pluginName}}'],
+            [$seederName, $pluginName],
+            get_plugin_stub('Seeder')
+        );
 
-class DatabaseSeeder extends Seeder
-{
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
-    public function run()
-    {
-        // $this->call(UsersTableSeeder::class);
+        file_put_contents(base_path("/plugins/{$pluginName}/Databases/Seeds/{$seederName}.php"), $seederTemplate);;
     }
-}';
+
+    public function makeComposerContents($pluginName)
+    {
+        //Creating composer.json file.
+        $configTemplate = str_replace(
+            ['{{name}}'],
+            [strtolower($pluginName)],
+            get_plugin_stub('composer')
+        );
+
+        file_put_contents(base_path("plugins/{$pluginName}/composer.json"), $configTemplate);
+    }
+
+    public function makePackageContents($pluginName)
+    {
+        //Creating Package.json file.
+        $configTemplate = str_replace(
+            ['{{name}}'],
+            [$pluginName],
+            get_plugin_stub('package')
+        );
+
+        file_put_contents(base_path("plugins/{$pluginName}/package.json"), $configTemplate);
+    }
+
+    public function frontEndConfigContents($pluginName)
+    {
+        File::makeDirectory(base_path('/plugins/') . $pluginName .'/Frontend');
+        File::makeDirectory(base_path('/plugins/') . $pluginName .'/Frontend/Pages');
+
+        //Creating front end config.js file.
+        $configTemplate = str_replace(
+            ['{{name}}', '{{title}}'],
+            [$pluginName, ucfirst($pluginName)],
+            get_plugin_stub('front-config')
+        );
+
+        file_put_contents(base_path("plugins/{$pluginName}/Frontend/config.js"), $configTemplate);
+    }
+
+    public function frontEndRoutesContents($pluginName)
+    {
+        //Creating front end routes.js file.
+        $configTemplate = str_replace(
+            ['{{name}}'],
+            [$pluginName],
+            get_plugin_stub('front-routes')
+        );
+
+        file_put_contents(base_path("plugins/{$pluginName}/Frontend/routes.js"), $configTemplate);
+    }
+
+    public function frontEndPageContents($pluginName)
+    {
+        //Creating front end page file.
+        $configTemplate = str_replace(
+            ['{{name}}'],
+            [$pluginName],
+            get_plugin_stub('front-page')
+        );
+
+        file_put_contents(base_path("plugins/{$pluginName}/Frontend/Pages/Home.vue"), $configTemplate);
     }
 }

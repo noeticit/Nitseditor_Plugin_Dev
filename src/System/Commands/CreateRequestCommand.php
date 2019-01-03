@@ -28,7 +28,7 @@ class CreateRequestCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'nits:request {requestName}';
+    protected $signature = 'nits:request {name} {--plugin=}';
 
     /**
      * Execute the console command.
@@ -37,43 +37,29 @@ class CreateRequestCommand extends Command
      */
     public function handle()
     {
-        $requestName = $this->argument('requestName');
-        if(count($this->getPlugins()) > 1)
+        $requestName = $this->argument('name');
+
+        if(! $this->option('plugin'))
         {
-            $this->info('You have multiple plugins installed');
-            $pluginName = $this->ask('Enter the plugin name');
-            $path = base_path('plugins') . $pluginName .'/nitseditor.php';
-            !File::exists($path) ? $this->info('Plugin does not exists') : $this->makeRequestContent($requestName, $pluginName);
+            if(count(nits_plugins()) > 1)
+            {
+                $this->info('You have multiple plugins installed');
+                $pluginName = $this->ask('Enter the plugin name');
+                !File::exists(base_path('/plugins/') . $pluginName) ? $this->info('Plugin does not exists') : $this->makeRequestContent($requestName, nits_get_plugin_config($pluginName.'.namespace'));
+            }
+            else
+            {
+                foreach(nits_plugins() as $plugin)
+                    $this->makeRequestContent($requestName, nits_get_plugin_config($plugin.'.namespace'));
+            }
         }
         else
         {
-            foreach($this->getPlugins() as $plugin)
-            {
-                $pluginName = str_replace(base_path('plugins'), '', $plugin);
-                $this->makeRequestContent($requestName, $pluginName);
-            }
+            if(File::exists(base_path('/plugins/') . $this->option('plugin') .'/Requests'))
+                $this->makeRequestContent($requestName, nits_get_plugin_config($this->option('plugin').'.namespace'));
+            else
+                $this->info('Plugin name mentioned doesn\'t exist');
         }
-
-    }
-
-    /**
-     * Get the stubs
-     * @param $type
-     * @return bool|string
-     */
-    protected function getStub($type)
-    {
-        return file_get_contents(base_path("vendor/noeticitservices/plugindev/src/System/Stubs/$type.stub"));
-    }
-
-    /**
-     * Get the plugins
-     * @return array
-     */
-    public function getPlugins()
-    {
-        $list = File::directories(base_path('plugins'));
-        return $list;
     }
 
     /**
@@ -82,13 +68,25 @@ class CreateRequestCommand extends Command
      */
     public function makeRequestContent($name, $pluginName)
     {
-        $requestName = ucfirst(strtolower($name)).'Request';
-        $requestTemplate = str_replace(
-            ['{{requestName}}', '{{pluginName}}'],
-            [$requestName, $pluginName],
-            $this->getStub('Request')
-        );
+        if(!isset($pluginName))
+            $this->info('Check your config file or namespace missing in configuration');
+        else
+        {
+            //Checking if folder exists or not
+            if(!File::exists(base_path('plugins/'.$pluginName.'/Requests')))
+            {
+                File::makeDirectory(base_path('plugins/'.$pluginName.'/Requests'));
+            }
 
-        file_put_contents(base_path("plugins/{$pluginName}/Requests/{$requestName}.php"), $requestTemplate);
+            //Creating Requests.
+            $requestName = ucfirst(strtolower($name)).'Request';
+            $requestTemplate = str_replace(
+                ['{{requestName}}', '{{pluginName}}'],
+                [$requestName, $pluginName],
+                get_plugin_stub('Request')
+            );
+
+            file_put_contents(base_path("plugins/{$pluginName}/Requests/{$requestName}.php"), $requestTemplate);
+        }
     }
 }

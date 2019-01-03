@@ -28,7 +28,7 @@ class CreateDatabaseCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'nits:table {tableName} ';
+    protected $signature = 'nits:table {name} {--plugin=}';
 
     /**
      * Execute the console command.
@@ -37,54 +37,55 @@ class CreateDatabaseCommand extends Command
      */
     public function handle()
     {
-        $migrationName = $this->argument('tableName');
-        if(count($this->getPlugins()) > 1)
+        $migrationName = $this->argument('name');
+
+        if(! $this->option('plugin'))
         {
-            $this->info('You have multiple plugins installed');
-            $pluginName = $this->ask('Enter the plugin name');
-            $path = base_path('plugins') . $pluginName .'/nitseditor.php';
-            !File::exists($path) ? $this->info('Plugin does not exists') : $this->makeDatabaseContent($migrationName, $pluginName);
+            if(count(nits_plugins()) > 1)
+            {
+                $this->info('You have multiple plugins installed');
+                $pluginName = $this->ask('Enter the plugin name');
+                !File::exists(base_path('/plugins/') . $pluginName) ? $this->info('Plugin does not exists') : $this->makeDatabaseContent($migrationName, nits_get_plugin_config($pluginName.'.namespace'));
+            }
+            else
+            {
+                foreach(nits_plugins() as $plugin)
+                    $this->makeDatabaseContent($migrationName , nits_get_plugin_config($plugin.'.namespace'));
+            }
         }
         else
         {
-            foreach($this->getPlugins() as $plugin)
-            {
-                $pluginName = str_replace(base_path('plugins'), '', $plugin);
-                $this->makeDatabaseContent($migrationName , $pluginName);
-            }
+            if(File::exists(base_path('/plugins/') . $this->option('plugin') .'/Databases/Migrations'))
+                $this->makeDatabaseContent($migrationName, nits_get_plugin_config($this->option('plugin').'.namespace'));
+            else
+                $this->info('Plugin name mentioned doesn\'t exist');
         }
 
-    }
-
-    /**
-     * Get the stubs
-     * @param $type
-     * @return bool|string
-     */
-    protected function getStub($type)
-    {
-        return file_get_contents(base_path("vendor/noeticitservices/plugindev/src/System/Stubs/$type.stub"));
-    }
-
-    /**
-     * @return array
-     */
-    public function getPlugins()
-    {
-        $list = File::directories(base_path('plugins'));
-        return $list;
     }
 
     public function makeDatabaseContent($migrationName, $pluginName)
     {
-        $migrationClass = ucfirst(str_plural(strtolower($migrationName)));
-        $fileName = Carbon::now()->format('Y_m_d_His'). '_create_'. str_plural(strtolower($migrationName)). '_table';
-        $databaseTemplate = str_replace(
-            ['{{MigrationClass}}', '{{tableName}}'],
-            [$migrationClass, str_plural(strtolower($migrationName))],
-            $this->getStub('Database')
-        );
+        if(!isset($pluginName))
+            $this->info('Check your config file or namespace missing in configuration');
+        else
+        {
+            //Checking if folder exists or not
+            if(!File::exists(base_path('plugins/'.$pluginName.'/Databases/Migrations')))
+            {
+                File::makeDirectory(base_path('plugins/'.$pluginName.'/Databases/Migrations'));
+            }
 
-        file_put_contents(base_path("plugins/{$pluginName}/Databases/Migrations/{$fileName}.php"), $databaseTemplate);
+            //Creating Databases.
+            $migrationClass = ucfirst(str_plural(strtolower($migrationName)));
+            $fileName = Carbon::now()->format('Y_m_d_His'). '_create_'. str_plural(strtolower($migrationName)). '_table';
+            $databaseTemplate = str_replace(
+                ['{{MigrationClass}}', '{{tableName}}'],
+                [$migrationClass, str_plural(strtolower($migrationName))],
+                get_plugin_stub('Database')
+            );
+
+            file_put_contents(base_path("plugins/{$pluginName}/Databases/Migrations/{$fileName}.php"), $databaseTemplate);
+        }
+
     }
 }

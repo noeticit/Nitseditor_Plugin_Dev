@@ -1,6 +1,6 @@
 <?php
 
-namespace Noetic\Plugins{{pluginName}}\Requests;
+namespace Noetic\Plugins\{{pluginName}}\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 

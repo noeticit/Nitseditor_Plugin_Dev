@@ -3,6 +3,7 @@
 namespace Nitseditor\System\Providers;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Nitseditor\System\Commands\CreateDatabaseCommand;
@@ -12,7 +13,6 @@ use Nitseditor\System\Commands\MakeControllerCommand;
 use Nitseditor\System\Commands\MakeModelCommand;
 use Illuminate\Support\Facades\Event;
 use Laravel\Passport\Events\AccessTokenCreated;
-use Nitseditor\System\Providers\ProviderRepository;
 use Illuminate\Database\Eloquent\Factory;
 use Faker\Generator as Faker;
 
@@ -29,6 +29,7 @@ class NitsEditorServiceProvider extends ServiceProvider
         Schema::defaultStringLength(191);
 
 //        $this->app->register('Nitseditor\System\Providers\NitsRoutesServiceProvider');
+        $this->app->register('Nitseditor\System\Providers\TaskSchedulerServiceProvider');
 
         $this->publishes([
             __DIR__.'/../nitseditor.php' => config_path('nitseditor.php'),
@@ -55,24 +56,27 @@ class NitsEditorServiceProvider extends ServiceProvider
             $this->registerMigrations();
         }
 
-        $config = config('nitseditor');
-        $packages = Arr::get($config, 'packages', []);
-
-        $routeDir = new PluginRouteServiceProvider($this->app, $packages);
+        $routeDir = new PluginRouteServiceProvider($this->app);
         $this->app->register($routeDir);
 
-        foreach ($packages as $package) {
+        foreach (nits_plugins() as $package) {
+            $namespace = nits_get_plugin_config($package.'.namespace');
+            if($namespace)
+            {
+//                if(File::exists(base_path().'/plugins/'. $namespace .'/Views', $namespace))
+//                    $this->loadViewsFrom(base_path().'/plugins/'. $namespace .'/Views', $namespace);
 
-            $packageName = Arr::get($package, 'name');
+                if(File::exists(base_path().'/plugins/'. $namespace .'/Databases/Migrations'))
+                    $this->loadMigrationsFrom(base_path().'/plugins/'. $namespace .'/Databases/Migrations');
 
-            $this->loadViewsFrom(base_path().'/plugins/'. $packageName .'/Views', $packageName);
-
-            $this->loadMigrationsFrom(base_path().'/plugins/'. $packageName .'/Databases/Migrations');
-
-            $this->app->singleton(Factory::class, function () use($packageName){
-                $faker = $this->app->make(Faker::class);
-                return Factory::construct($faker,base_path().'/plugins/'. $packageName . '/Databases/Factories');
-            });
+                if(File::exists(base_path().'/plugins/'. $namespace . '/Databases/Factories'))
+                {
+                    $this->app->singleton(Factory::class, function () use($namespace){
+                        $faker = $this->app->make(Faker::class);
+                        return Factory::construct($faker,base_path().'/plugins/'. $namespace . '/Databases/Factories');
+                    });
+                }
+            }
 
         }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Noetic\Plugins{{pluginName}}\Controllers;
+namespace Noetic\Plugins\{{pluginName}}\Controllers;
 
 use App\Http\Controllers\Controller;
 

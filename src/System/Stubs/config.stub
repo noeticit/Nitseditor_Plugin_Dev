@@ -1,0 +1,14 @@
+<?php
+
+return [
+
+    // Name of Plugin
+    'name' => '{{name}}',
+
+    //Namespace to be used as classes/plugin folder name
+    'namespace' => '{{namespace}}',
+
+    //Description of plugin
+    'description' => '',
+
+];

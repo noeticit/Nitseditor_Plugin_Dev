@@ -27,7 +27,7 @@ class MakeControllerCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'nits:controller {controllerName}';
+    protected $signature = 'nits:controller {name} {--plugin=}';
 
     /**
      * Execute the console command.
@@ -36,45 +36,32 @@ class MakeControllerCommand extends Command
      */
     public function handle()
     {
-        $controllerName = $this->argument('controllerName');
-        if(count($this->getPlugins()) > 1)
+        $controllerName = $this->argument('name');
+
+        if(! $this->option('plugin'))
         {
-            $this->info('You have multiple plugins installed');
-            $pluginName = $this->ask('Enter the plugin name');
-            $path = base_path('plugins') . $pluginName .'/nitseditor.php';
-            !File::exists($path) ? $this->info('Plugin does not exists') : $this->makeControllerContent($controllerName, $pluginName);
+            if(count(nits_plugins()) > 1)
+            {
+                $this->info('You have multiple plugins installed');
+                $pluginName = $this->ask('Enter the plugin name');
+                !File::exists(base_path('/plugins/') . $pluginName) ? $this->info('Plugin does not exist') : $this->makeControllerContent($controllerName, nits_get_plugin_config($pluginName.'.namespace'));
+            }
+            else
+            {
+                foreach(nits_plugins() as $plugin)
+                    $this->makeControllerContent($controllerName, nits_get_plugin_config($plugin.'.namespace'));
+            }
         }
         else
         {
-            foreach($this->getPlugins() as $plugin)
-            {
-
-                $pluginName = str_replace(base_path('plugins'), '', $plugin);
-                $this->makeControllerContent($controllerName, $pluginName);
-            }
+            if(File::exists(base_path('/plugins/') . $this->option('plugin') .'/Controllers'))
+                $this->makeControllerContent($controllerName, nits_get_plugin_config($this->option('plugin').'.namespace'));
+            else
+                $this->info('Plugin name mentioned doesn\'t exist');
         }
 
     }
 
-    /**
-     * Get the stubs
-     * @param $type
-     * @return bool|string
-     */
-    protected function getStub($type)
-    {
-        return file_get_contents(base_path("vendor/noeticitservices/plugindev/src/System/Stubs/$type.stub"));
-    }
-
-    /**
-     * Get the plugins
-     * @return array
-     */
-    public function getPlugins()
-    {
-        $list = File::directories(base_path('plugins'));
-        return $list;
-    }
 
     /**
      * @param $name
@@ -82,13 +69,27 @@ class MakeControllerCommand extends Command
      */
     public function makeControllerContent($name, $pluginName)
     {
-        $controllerName = ucfirst(strtolower($name)).'Controller';
-        $requestTemplate = str_replace(
-            ['{{$controllerName}}', '{{pluginName}}'],
-            [$controllerName, $pluginName],
-            $this->getStub('Controller')
-        );
+        if(!isset($pluginName))
+            $this->info('Check your config file or namespace missing in configuration');
+        else
+        {
+            //Checking if folder exists or not
+            if(!File::exists(base_path('plugins/'.$pluginName.'/Controllers')))
+            {
+                File::makeDirectory(base_path('plugins/'.$pluginName.'/Controllers'));
+            }
 
-        file_put_contents(base_path("plugins/{$pluginName}/Controllers/{$controllerName}.php"), $requestTemplate);
+            //Creating Controller.
+            $controllerName = ucfirst(strtolower($name)).'Controller';
+            $controllerTemplate = str_replace(
+                ['{{$controllerName}}', '{{pluginName}}'],
+                [$controllerName, $pluginName],
+                get_plugin_stub('Controller')
+            );
+
+            file_put_contents(base_path("plugins/{$pluginName}/Controllers/{$controllerName}.php"), $controllerTemplate);
+
+        }
+
     }
 }
