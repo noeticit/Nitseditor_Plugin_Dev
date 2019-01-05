@@ -6,6 +6,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
+use Nitseditor\System\Commands\CreateCrudCommand;
 use Nitseditor\System\Commands\CreateDatabaseCommand;
 use Nitseditor\System\Commands\CreatePluginCommand;
 use Nitseditor\System\Commands\CreateRequestCommand;
@@ -100,6 +101,7 @@ class NitsEditorServiceProvider extends ServiceProvider
                 MakeControllerCommand::class,
                 CreateDatabaseCommand::class,
                 CreateRequestCommand::class,
+                CreateCrudCommand::class,
             ]);
         }
     }

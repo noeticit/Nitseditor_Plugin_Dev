@@ -66,6 +66,7 @@ class CreatePluginCommand extends Command
         File::makeDirectory(base_path('/plugins/') . $pluginName .'/Exceptions');
         File::makeDirectory(base_path('/plugins/') . $pluginName .'/Listeners');
         File::makeDirectory(base_path('/plugins/') . $pluginName .'/Requests');
+        File::makeDirectory(base_path('/plugins/') . $pluginName .'/Resources');
 
         $this->makeSeeders('Install', $pluginName);
         $this->makeSeeders('Uninstall', $pluginName);

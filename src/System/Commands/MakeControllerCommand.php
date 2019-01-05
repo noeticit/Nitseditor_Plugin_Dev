@@ -54,7 +54,7 @@ class MakeControllerCommand extends Command
         }
         else
         {
-            if(File::exists(base_path('/plugins/') . $this->option('plugin') .'/Controllers'))
+            if(File::exists(base_path('/plugins/') . $this->option('plugin')))
                 $this->makeControllerContent($controllerName, nits_get_plugin_config($this->option('plugin').'.namespace'));
             else
                 $this->info('Plugin name mentioned doesn\'t exist');

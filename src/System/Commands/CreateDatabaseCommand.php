@@ -55,7 +55,7 @@ class CreateDatabaseCommand extends Command
         }
         else
         {
-            if(File::exists(base_path('/plugins/') . $this->option('plugin') .'/Databases/Migrations'))
+            if(File::exists(base_path('/plugins/') . $this->option('plugin')))
                 $this->makeDatabaseContent($migrationName, nits_get_plugin_config($this->option('plugin').'.namespace'));
             else
                 $this->info('Plugin name mentioned doesn\'t exist');
@@ -63,6 +63,10 @@ class CreateDatabaseCommand extends Command
 
     }
 
+    /**
+     * @param $migrationName
+     * @param $pluginName
+     */
     public function makeDatabaseContent($migrationName, $pluginName)
     {
         if(!isset($pluginName))
