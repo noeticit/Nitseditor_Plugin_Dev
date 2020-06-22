@@ -64,8 +64,8 @@ class NitsEditorServiceProvider extends ServiceProvider
             $namespace = nits_get_plugin_config($package.'.namespace');
             if($namespace)
             {
-//                if(File::exists(base_path().'/plugins/'. $namespace .'/Views', $namespace))
-//                    $this->loadViewsFrom(base_path().'/plugins/'. $namespace .'/Views', $namespace);
+                if(File::exists(base_path().'/plugins/'. $namespace .'/Views', $namespace))
+                    $this->loadViewsFrom(base_path().'/plugins/'. $namespace .'/Views', $namespace);
 
                 if(File::exists(base_path().'/plugins/'. $namespace .'/Databases/Migrations'))
                     $this->loadMigrationsFrom(base_path().'/plugins/'. $namespace .'/Databases/Migrations');
