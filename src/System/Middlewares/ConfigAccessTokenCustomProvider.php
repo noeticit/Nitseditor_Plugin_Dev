@@ -11,6 +11,8 @@ use Nitseditor\System\Providers\ProviderRepository;
 use Nitseditor\System\Guards\GuardChecker;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory;
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 
 class ConfigAccessTokenCustomProvider
 {
