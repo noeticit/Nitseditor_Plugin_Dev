@@ -44,7 +44,17 @@ class ConfigAccessTokenCustomProvider
         if (count($guards) == 0) {
             return $next($request);
         }
-        $psr = (new DiactorosFactory)->createRequest($request);
+        if (class_exists(Psr17Factory::class) && class_exists(PsrHttpFactory::class)) {
+            $psr17Factory = new Psr17Factory;
+
+            $psr =  (new PsrHttpFactory($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory))
+                ->createRequest($symfonyRequest);
+        }
+
+        if (class_exists(DiactorosFactory::class)) {
+            $psr =  (new DiactorosFactory)->createRequest($symfonyRequest);
+        }
+//        $psr = (new DiactorosFactory)->createRequest($request);
         try {
             $psr = $this->server->validateAuthenticatedRequest($psr);
             $tokenId = $psr->getAttribute('oauth_access_token_id');

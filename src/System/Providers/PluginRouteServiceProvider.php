@@ -77,7 +77,7 @@ class PluginRouteServiceProvider extends RouteServiceProvider
             {
                 if(File::exists(base_path('/plugins/'). $namespace .'/Routes/api.php', $namespace))
                 {
-                    Route::prefix(nits_get_plugin_config($package.'name') .'/api')
+                    Route::prefix('Conxn/api')
                         ->middleware('api')
                         ->namespace('Noetic\Plugins\\'. $namespace .'\Controllers')
                         ->group(base_path('plugins/') . $namespace . '/Routes/api.php');
