@@ -50,11 +50,11 @@ class ConfigAccessTokenCustomProvider
             $psr17Factory = new Psr17Factory;
 
             $psr =  (new PsrHttpFactory($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory))
-                ->createRequest($symfonyRequest);
+                ->createRequest($request);
         }
 
         if (class_exists(DiactorosFactory::class)) {
-            $psr =  (new DiactorosFactory)->createRequest($symfonyRequest);
+            $psr =  (new DiactorosFactory)->createRequest($request);
         }
 //        $psr = (new DiactorosFactory)->createRequest($request);
         try {
