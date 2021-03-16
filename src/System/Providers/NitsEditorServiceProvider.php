@@ -58,23 +58,28 @@ class NitsEditorServiceProvider extends ServiceProvider
         }
 
         $routeDir = new PluginRouteServiceProvider($this->app);
+
         $this->app->register($routeDir);
 
         foreach (nits_plugins() as $package) {
+
             $namespace = nits_get_plugin_config($package.'.namespace');
-            if($namespace)
+//            dd($namespace);
+            if($package)
             {
-                if(File::exists(base_path().'/plugins/'. $namespace .'/Views', $namespace))
-                    $this->loadViewsFrom(base_path().'/plugins/'. $namespace .'/Views', $namespace);
+                if(File::exists(base_path().'/plugins/'. $package .'/Views', $package))
+                    $this->loadViewsFrom(base_path().'/plugins/'. $package .'/Views', $package);
 
-                if(File::exists(base_path().'/plugins/'. $namespace .'/Databases/Migrations'))
-                    $this->loadMigrationsFrom(base_path().'/plugins/'. $namespace .'/Databases/Migrations');
+                if(File::exists(base_path().'/plugins/'. $package .'/Databases/Migrations'))
 
-                if(File::exists(base_path().'/plugins/'. $namespace . '/Databases/Factories'))
+                    $this->loadMigrationsFrom(base_path().'/plugins/'. $package .'/Databases/Migrations');
+
+                if(File::exists(base_path().'/plugins/'. $package . '/Databases/Factories'))
                 {
-                    $this->app->singleton(Factory::class, function () use($namespace){
+
+                    $this->app->singleton(Factory::class, function () use($package){
                         $faker = $this->app->make(Faker::class);
-                        return Factory::construct($faker,base_path().'/plugins/'. $namespace . '/Databases/Factories');
+                        return Factory::construct($faker,base_path().'/plugins/'. $package . '/Databases/Factories');
                     });
                 }
             }
@@ -83,7 +88,7 @@ class NitsEditorServiceProvider extends ServiceProvider
 
         $this->app->singleton('nitseditor', function ($app)
         {
-           return new NitsEditor;
+            return new NitsEditor;
         });
     }
 
