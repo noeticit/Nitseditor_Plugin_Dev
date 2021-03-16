@@ -72,12 +72,13 @@ class PluginRouteServiceProvider extends RouteServiceProvider
         //Plugin route loader
         foreach (nits_plugins() as $package){
             $namespace = nits_get_plugin_config($package.'.namespace');
-
             if($namespace)
             {
+
                 if(File::exists(base_path('/plugins/'). $namespace .'/Routes/api.php', $namespace))
                 {
-                    Route::prefix('Conxn/api')
+
+                    Route::prefix( $namespace .'/api')
                         ->middleware('api')
                         ->namespace('Noetic\Plugins\\'. $namespace .'\Controllers')
                         ->group(base_path('plugins/') . $namespace . '/Routes/api.php');
@@ -90,9 +91,9 @@ class PluginRouteServiceProvider extends RouteServiceProvider
         }
     }
 
-//    protected function mapWebRoutes()
-//    {
-//        //Nitseditor route loader
+    protected function mapWebRoutes()
+    {
+//        Nitseditor route loader
 //        $config = config('nitseditor');
 //        $packages = Arr::get($config, 'packages', []);
 //        if(!$packages) {
@@ -100,8 +101,8 @@ class PluginRouteServiceProvider extends RouteServiceProvider
 //                ->namespace($this->nitsditorNamespace)
 //                ->group(__DIR__ . '/../Routes/web.php');
 //        }
-//
-//        //Plugin route loader
+
+//        Plugin route loader
 //        if(config('nitseditor.old_config'))
 //        {
 //            foreach ($this->packages as $package) {
@@ -114,5 +115,5 @@ class PluginRouteServiceProvider extends RouteServiceProvider
 //                    ->group($this->path . $this->directoryPath . $packageName . '/Routes/web.php');
 //            }
 //        }
-//    }
+    }
 }
